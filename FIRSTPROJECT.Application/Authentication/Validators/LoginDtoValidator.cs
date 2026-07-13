@@ -1,10 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using FIRSTPROJECT.Application.Authentication.DTOs;
+using FluentValidation;
 
-namespace FIRSTPROJECT.Application.Authentication.Validators
+namespace FIRSTPROJECT.Application.Authentication.Validators;
+
+public class LoginDtoValidator : AbstractValidator<LoginDto>
 {
-    internal class LoginDtoValidator
+    public LoginDtoValidator()
     {
+        RuleFor(x => x.Email)
+            .NotEmpty()
+            .EmailAddress();
+
+        RuleFor(x => x.Password)
+            .NotEmpty();
     }
 }

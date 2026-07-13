@@ -1,6 +1,10 @@
-﻿using FIRSTPROJECT.Infrastructure.Identity;
+﻿using FIRSTPROJECT.Application.Authentication.Interfaces;
+using FIRSTPROJECT.Application.Categories.Interfaces;
+using FIRSTPROJECT.Application.Categories.Services;
+using FIRSTPROJECT.Infrastructure.Identity;
 using FIRSTPROJECT.Infrastructure.Persistence;
 using FIRSTPROJECT.Infrastructure.Persistence.Repositories;
+using FIRSTPROJECT.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +27,8 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }

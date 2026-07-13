@@ -1,9 +1,13 @@
 using FIRSTPROJECT.Application;
 using FIRSTPROJECT.Application.Categories.Interfaces;
+using FIRSTPROJECT.Application.Categories.Validators;
 using FIRSTPROJECT.Infrastructure;
 using FluentValidation;
-using FIRSTPROJECT.Application.Categories.Validators;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 namespace FIRSTPROJECT.Api
+    
 {
     public class Program
     {
@@ -13,6 +17,29 @@ namespace FIRSTPROJECT.Api
             builder.Services.AddApplication();
 
             builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
+
+            builder.Services.AddAuthorization();
 
             builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();//now we are goint to use fluent validation instead of using services.
 
@@ -32,7 +59,7 @@ namespace FIRSTPROJECT.Api
             }
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
