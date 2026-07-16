@@ -1,4 +1,5 @@
-﻿using FIRSTPROJECT.Application.Categories.DTOs;
+﻿using FIRSTPROJECT.Api.Common;
+using FIRSTPROJECT.Application.Categories.DTOs;
 using FIRSTPROJECT.Application.Categories.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,6 @@ public class CategoriesController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var categories = await _categoryService.GetAllAsync();
-
         return Ok(categories);
     }
 
@@ -55,8 +55,7 @@ public class CategoriesController : ControllerBase
         {
             return BadRequest(new
             {
-                Errors = validationResult.Errors
-                    .Select(error => error.ErrorMessage)
+                Errors = validationResult.Errors.Select(error => error.ErrorMessage)
             });
         }
 
@@ -77,21 +76,20 @@ public class CategoriesController : ControllerBase
         {
             return BadRequest(new
             {
-                Errors = validationResult.Errors
-                    .Select(error => error.ErrorMessage)
+                Errors = validationResult.Errors.Select(error => error.ErrorMessage)
             });
         }
 
-        await _categoryService.UpdateAsync(id, dto);
+        var result = await _categoryService.UpdateAsync(id, dto);
 
-        return NoContent();
+        return result.ToActionResult();
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _categoryService.DeleteAsync(id);
+        var result = await _categoryService.DeleteAsync(id);
 
-        return NoContent();
+        return result.ToActionResult();
     }
 }

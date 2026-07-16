@@ -1,5 +1,5 @@
 ﻿namespace FIRSTPROJECT.Domain.Constants;
-
+//All The messages that are used in the application are defined here. This is to avoid hardcoding the messages in the code and to have a single place to manage them. This is a good practice to follow as it makes it easier to manage the messages and also makes it easier to support multiple languages in the future if needed.
 public static class ResponseMessages
 {
     // Authentication

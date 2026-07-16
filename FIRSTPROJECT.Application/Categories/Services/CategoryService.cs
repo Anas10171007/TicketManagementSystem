@@ -94,6 +94,6 @@ public class CategoryService : ICategoryService
 
         await _categoryRepository.DeleteAsync(category);
 
-        return ServiceResult.Ok();
+        return ServiceResult.Ok(HttpStatusCode.NoContent);
     }
 }

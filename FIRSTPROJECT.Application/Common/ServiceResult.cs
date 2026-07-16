@@ -15,8 +15,8 @@ public class ServiceResult
         Message = message;
     }
 
-    public static ServiceResult Ok()
-        => new(true, HttpStatusCode.OK, null);
+    public static ServiceResult Ok(HttpStatusCode statusCode = HttpStatusCode.OK)
+     => new(true, statusCode, null);
 
     public static ServiceResult Fail(HttpStatusCode statusCode, string message)
         => new(false, statusCode, message);
