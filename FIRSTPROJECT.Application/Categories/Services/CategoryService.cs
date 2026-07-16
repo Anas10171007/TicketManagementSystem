@@ -1,4 +1,8 @@
 ﻿using FIRSTPROJECT.Application.Categories.DTOs;
+using FIRSTPROJECT.Application.Categories.Interfaces;
+using FIRSTPROJECT.Application.Common;
+using FIRSTPROJECT.Domain.Constants;
+using System.Net;
 
 namespace FIRSTPROJECT.Application.Categories.Services;
 
@@ -61,13 +65,13 @@ public class CategoryService : ICategoryService
         };
     }
 
-    public async Task UpdateAsync(Guid id, UpdateCategoryDto dto)
+    public async Task<ServiceResult> UpdateAsync(Guid id, UpdateCategoryDto dto)
     {
         var category = await _categoryRepository.GetByIdAsync(id);
 
         if (category is null)
         {
-            throw new Exception("Category not found.");
+            return ServiceResult.Fail(HttpStatusCode.NotFound, ResponseMessages.CategoryNotFound);
         }
 
         category.Name = dto.Name;
@@ -75,17 +79,21 @@ public class CategoryService : ICategoryService
         category.IsActive = dto.IsActive;
 
         await _categoryRepository.UpdateAsync(category);
+
+        return ServiceResult.Ok();
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task<ServiceResult> DeleteAsync(Guid id)
     {
         var category = await _categoryRepository.GetByIdAsync(id);
 
         if (category is null)
         {
-            throw new Exception("Category not found.");
+            return ServiceResult.Fail(HttpStatusCode.NotFound, ResponseMessages.CategoryNotFound);
         }
 
         await _categoryRepository.DeleteAsync(category);
+
+        return ServiceResult.Ok();
     }
 }

@@ -1,14 +1,17 @@
 ﻿using FIRSTPROJECT.Application.Authentication.DTOs;
 using FIRSTPROJECT.Application.Authentication.Interfaces;
+using FIRSTPROJECT.Application.Common;
+using FIRSTPROJECT.Domain.Constants;
 using FIRSTPROJECT.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
-namespace FIRSTPROJECT.Infrastructure.Services;
 
+namespace FIRSTPROJECT.Infrastructure.Services;
 
 public class AuthService : IAuthService
 {
@@ -29,13 +32,13 @@ public class AuthService : IAuthService
         _configuration = configuration;
     }
 
-    public async Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto)
+    public async Task<ServiceResult<AuthResponseDto>> RegisterAsync(RegisterDto registerDto)
     {
         var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
 
         if (existingUser != null)
         {
-            throw new Exception("Email already exists.");
+            return ServiceResult<AuthResponseDto>.Fail(HttpStatusCode.Conflict, ResponseMessages.EmailAlreadyExists);
         }
 
         var user = new ApplicationUser
@@ -50,64 +53,64 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            throw new Exception(errors);
+            return ServiceResult<AuthResponseDto>.Fail(HttpStatusCode.BadRequest, errors);
         }
 
-        return new AuthResponseDto
+        var response = new AuthResponseDto
         {
             Email = user.Email!,
             FullName = user.FullName,
             Token = GenerateJwtToken(user)
         };
+
+        return ServiceResult<AuthResponseDto>.Ok(response);
     }
 
-    public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
+    public async Task<ServiceResult<AuthResponseDto>> LoginAsync(LoginDto loginDto)
     {
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
         if (user == null)
         {
-            throw new Exception("Invalid email or password.");
+            return ServiceResult<AuthResponseDto>.Fail(HttpStatusCode.Unauthorized, ResponseMessages.InvalidCredentials);
         }
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, loginDto.Password);
 
         if (!isPasswordValid)
         {
-            throw new Exception("Invalid email or password.");
+            return ServiceResult<AuthResponseDto>.Fail(HttpStatusCode.Unauthorized, ResponseMessages.InvalidCredentials);
         }
 
-        return new AuthResponseDto
+        var response = new AuthResponseDto
         {
             Email = user.Email!,
             FullName = user.FullName,
             Token = GenerateJwtToken(user)
         };
-    }
 
+        return ServiceResult<AuthResponseDto>.Ok(response);
+    }
 
     private string GenerateJwtToken(ApplicationUser user)
     {
         var claims = new List<Claim>
-    {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-        new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-        new Claim(JwtRegisteredClaimNames.UniqueName, user.FullName)
-    };
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.FullName)
+        };
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
 
-        var credentials = new SigningCredentials(
-            key,
-            SecurityAlgorithms.HmacSha256);
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(
-                Convert.ToDouble(_configuration["Jwt:ExpiryMinutes"])),
+            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:ExpiryMinutes"])),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

@@ -1,4 +1,5 @@
-﻿using FIRSTPROJECT.Application.Authentication.DTOs;
+﻿using FIRSTPROJECT.Api.Common;
+using FIRSTPROJECT.Application.Authentication.DTOs;
 using FIRSTPROJECT.Application.Authentication.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -32,14 +33,13 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new
             {
-                Errors = validationResult.Errors
-                    .Select(error => error.ErrorMessage)
+                Errors = validationResult.Errors.Select(error => error.ErrorMessage)
             });
         }
 
-        var response = await _authService.RegisterAsync(dto);
+        var result = await _authService.RegisterAsync(dto);
 
-        return Ok(response);
+        return result.ToActionResult();
     }
 
     [HttpPost("login")]
@@ -51,13 +51,12 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new
             {
-                Errors = validationResult.Errors
-                    .Select(error => error.ErrorMessage)
+                Errors = validationResult.Errors.Select(error => error.ErrorMessage)
             });
         }
 
-        var response = await _authService.LoginAsync(dto);
+        var result = await _authService.LoginAsync(dto);
 
-        return Ok(response);
+        return result.ToActionResult();
     }
 }
