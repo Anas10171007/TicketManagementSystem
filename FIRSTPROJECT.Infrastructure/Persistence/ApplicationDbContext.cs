@@ -17,4 +17,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Ticket> Tickets => Set<Ticket>();
 
     public DbSet<TicketComment> TicketComments => Set<TicketComment>();
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<Ticket>()
+            .HasOne<Category>()
+            .WithMany()
+            .HasForeignKey(t => t.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
 }
