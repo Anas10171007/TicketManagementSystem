@@ -12,4 +12,5 @@ public static class ResponseMessages
 
     // Generic / unexpected
     public const string UnexpectedError = "An unexpected error occurred. Please try again later.";
+    public const string TicketNotFound = "Ticket not found.";
 }
